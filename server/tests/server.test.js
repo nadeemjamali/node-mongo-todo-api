@@ -1,20 +1,29 @@
 const expect = require("expect");
 const request = require("supertest");
+const {ObjectID} = require("mongodb");
+
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
 const testTodosData = [{
+            _id: new ObjectID(),
             text: "First dummy todo"
         },
         {
+            _id: new ObjectID(),
             text: "second dummy todo"
         }];
 
 beforeEach((done) => {
     Todo.remove({}).then(() => {
         return Todo.insertMany(testTodosData);
-    }).then(() => done());
+    }).then(() => {        
+        done();
+    }, (err) => {
+        console.log('Error in adding test data: ', err);
+        done();
+    });
 });
 
 describe('POST /todos', ()=>{
@@ -70,3 +79,16 @@ describe('GET /todos', ()=>{
             .end(done);
     });
 });
+
+describe('GET /todos/:id', ()=>{
+    it('should return todo doc', (done) => {
+        request(app)
+            .get(`/todos/${testTodosData[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                //expect(res.body.todo._id.toHexString()).toBe(testTodosData[0]._id.toHexString());  
+                expect(res.body.todo.text).toBe(testTodosData[0].text);  
+            })
+            .end(done);
+    });
+})
