@@ -114,6 +114,21 @@ app.patch('/todos/:id', (req, res) => {
     });
 });
 
+
+app.post('/users', (req, res) => {
+    
+    var user = new User(_.pick(req.body,['email', 'password']));
+    
+    user.save().then((doc)=> {
+        res.status(200).send(doc);
+    }, (err)=>{
+        res.status(400).send(err);
+    });    
+    
+});
+
+
+
 app.listen(port, () => {
     console.log(`Started app on port ${port}`);
 });
