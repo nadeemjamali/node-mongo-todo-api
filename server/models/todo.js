@@ -9,12 +9,12 @@ var Todo = mongoose.model('Todo',{
         trim: true
     },
     completedAt: {
-        type: Boolean,
+        type: Number,
         default: null
     },
     completed: {
-        type: Number,
-        default: 123
+        type: Boolean,
+        default: false
     }
 });
 
