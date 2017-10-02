@@ -91,7 +91,7 @@ UserSchema.pre('save',function(next){
                 bcrypt.hash(password, salt,(error, hash) => {
                     if(!error){
                         user.password = hash;
-                        console.log(`Password hashed: ${hash}`);
+                        
                     }else{
                         console.log(`error occurred while hashing: ${error}`);
                     }       
