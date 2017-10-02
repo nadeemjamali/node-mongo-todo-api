@@ -1,6 +1,6 @@
 const {SHA256} = require('crypto-js');
 const jwt = require('jsonwebtoken');
-
+const bcrypt = require('bcryptjs');
 
 var message = "I am user number 3";
 
@@ -17,3 +17,6 @@ console.log(`JWT token: ${t}`);
 
 var v = jwt.verify(t, 'verysecret');
 console.log(`JWT verified: ${JSON.stringify(v)}`);
+
+var password = 'abc123!';
+
