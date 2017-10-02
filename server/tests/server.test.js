@@ -5,6 +5,8 @@ const {ObjectID} = require("mongodb");
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {User} = require('./../models/user');
+
 const {testTodosData, populateTodos,users, populateUsers} = require('./seed/seed');
 
 beforeEach(populateUsers);
@@ -140,4 +142,87 @@ describe('PATCH /todos/:id', ()=>{
             .patch(`/todos/59c90b3111d60851cf57eb62`)
             .expect(404)
             .end(done);});
+});
+
+describe('Tokens /users/me',()=>{
+    it('should return the user', (done) => {
+        request(app)
+            .get('/users/me')
+            .set('x-auth', users[0].tokens[0].token)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.email).toBe(users[0].email);
+                expect(res.body._id).toBe(users[0]._id.toHexString());
+            }).end(done);
+    });
+
+    it('should not return the user',(done)=> {
+        request(app)
+        .get('/users/me')
+        .expect(401).expect((res) => {
+            expect(res.body).toEqual({});
+        })
+        .end(done);
+    });
+});
+
+describe('POST /users', ()=>{
+    it('should create a user', (done) => {
+        var email = 'example@example.com';
+        var password = 'password!';
+
+        request(app)
+            .post('/users')
+            .send({email, password})
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toExist();
+                expect(res.body._id).toExist();
+                expect(res.body.email).toBe(email);
+            }).end((err) => {
+                if(err)
+                {
+                    return done(err);
+                }
+                
+                User.findOne({email}).then((user)=>{
+                    expect(user).toExist();
+                    expect(user.password).toNotBe(password);
+                    done();
+                });
+
+            });
+    });
+
+    it('should through validation error on email', (done)=>{
+        var email = 'example.example.com';
+        var password = 'password!';
+
+        request(app)
+        .post('/users')
+        .send({email, password})
+        .expect(400)
+        .end(done);
+
+    });
+
+    it('should through validation error on password', (done)=>{
+        var email = 'example@example.com';
+        var password = 'passw';
+
+        request(app)
+        .post('/users')
+        .send({email, password})
+        .expect(400).end(done);
+    });
+
+    it('should not create a user if email in use', (done)=>{
+        var email = users[0].email;
+        var password = 'password!';
+
+        request(app)
+        .post('/users')
+        .send({email, password})
+        .expect(400).end(done);
+    });
 });
