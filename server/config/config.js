@@ -1,12 +1,10 @@
-var current_env = process.env.NODE_ENV || 'developmnet';
+var current_env = process.env.NODE_ENV || 'development';
 
-const _port = 3000;
+if(current_env === 'test' || current_env === 'development'){
+    var config = require('./config.json');
+    var env = config[current_env];
 
-if(current_env === 'developmnet'){
-    process.env.PORT = 3000;
-    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoMongoose';
-}
-else if(current_env === 'test'){
-    process.env.PORT = 3000;
-    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoMongooseTest';
+    Object.keys(env).forEach((key) =>{
+        process.env[key] = env[key];
+    });
 }
