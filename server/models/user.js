@@ -44,7 +44,7 @@ UserSchema.methods.toJSON = function(){
     return _.pick(userObject, ['_id', 'email']);
 };
 
-UserSchema.methods.generateAuthToken = function(){
+UserSchema.methods.generateAuthToken = async function(){
     var user = this;
     var access = 'auth';
 
@@ -52,23 +52,39 @@ UserSchema.methods.generateAuthToken = function(){
 
     user.tokens.push({access, token});
 
-    return user.save().then(() => {
+    try{
+        await user.save();
         return token;
-    });
+    }
+    catch(e){
+        throw new Error('Could not save the token in database.');
+    }
+    // return user.save().then(() => {
+    //     return token;
+    // });
 };
 
-UserSchema.methods.removeToken = function(token){
+UserSchema.methods.removeToken = async function(token){
     var user = this;
+    try{
+        await user.update({
+            $pull:{
+                tokens:{token}
+            }
+        });
+    }catch(e){
+        throw new Error('Could not remove the token from the database.');        
+    }
 
-    return user.update({
-        $pull:{
-            tokens:{token}
-        }
-    });
+    // return user.update({
+    //     $pull:{
+    //         tokens:{token}
+    //     }
+    // });
 };
 
 //static/model/class methods
-UserSchema.statics.findByToken = function(token){
+UserSchema.statics.findByToken = async function(token){
 
     var User = this;
     var decoded;
@@ -79,18 +95,28 @@ UserSchema.statics.findByToken = function(token){
         return Promise.reject();
     }
 
-    return User.findOne({
-        '_id': decoded._id,
-        'tokens.token': token,
-        'tokens.access': 'auth'
-    });
+    try{
+        return await User.findOne({
+            '_id': decoded._id,
+            'tokens.token': token,
+            'tokens.access': 'auth'
+        });
+    }catch(e){
+        throw new Error('Could not find the token in the database.');
+    }
+    
+    // return User.findOne({
+    //     '_id': decoded._id,
+    //     'tokens.token': token,
+    //     'tokens.access': 'auth'
+    // });
 
 };
 
-UserSchema.statics.findByCredentials = function(email, password){
+UserSchema.statics.findByCredentials = async function(email, password){
     var User = this;
-
-    return User.findOne({email}).then((user)=>{
+    try{
+        const user = await User.findOne({email});
         if(!user){
             return Promise.reject();
         }
@@ -109,9 +135,32 @@ UserSchema.statics.findByCredentials = function(email, password){
                 
             });
         });
-    }).catch((e)=>{
+    }catch(e){
+        throw new Error('Username or password don\'t match!');
+    }
 
-    });
+    // return User.findOne({email}).then((user)=>{
+    //     if(!user){
+    //         return Promise.reject();
+    //     }
+
+    //     return new Promise((resolve, reject)=>{
+    //         bcrypt.compare(password, user.password, (err, res)=>{
+    //             if(err){
+    //                 return reject(err);
+    //             }
+    //             if(res){
+    //                 resolve(user);
+    //             }
+    //             else{
+    //                 return reject();
+    //             }
+                
+    //         });
+    //     });
+    // }).catch((e)=>{
+
+    // });
 };
 
 //mongose middlewares

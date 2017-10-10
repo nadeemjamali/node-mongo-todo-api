@@ -50,26 +50,44 @@ const testTodosData = [{
     _creator: userThreeId
 }];
 
-const populateUsers = (done) => {
-    User.remove({}).then(() => {
-        var userOne = new User(users[0]).save();
-        var userTwo = new User(users[1]).save();
-        var userThree = new User(users[2]).save();
+const populateUsers = async (/*done*/) => {
 
-        //wait for all promises to be executed
-        return Promise.all([userOne, userTwo, userThree]);
-    }).then(() => done());
+    try{
+        await User.remove({});
+        await User(users[0]).save();
+        await User(users[1]).save();
+        await User(users[2]).save();        
+    }catch(e){
+        throw new Error('could not save user seed data.');
+    }
+
+    // User.remove({}).then(() => {
+    //     var userOne = new User(users[0]).save();
+    //     var userTwo = new User(users[1]).save();
+    //     var userThree = new User(users[2]).save();
+
+    //     //wait for all promises to be executed
+    //     return Promise.all([userOne, userTwo, userThree]);
+    // }).then(() => done());
 };
 
-const populateTodos = (done) => {
-    Todo.remove({}).then(() => {
-        return Todo.insertMany(testTodosData);
-    }).then(() => {        
-        done();
-    }, (err) => {
-        console.log('Error in adding test data: ', err);
-        done(err);
-    });
+const populateTodos = async (/*done*/) => {
+    try{
+        await Todo.remove({});
+        await Todo.insertMany(testTodosData);
+    }
+    catch(e){
+        throw new Error('Error in adding test data: ');
+    }
+
+    // Todo.remove({}).then(() => {
+    //     return Todo.insertMany(testTodosData);
+    // }).then(() => {        
+    //     done();
+    // }, (err) => {
+    //     console.log('Error in adding test data: ', err);
+    //     done(err);
+    // });
 };
 
 
